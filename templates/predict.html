@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASPRS — Single Prediction</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F0F4F8;--white:#FFFFFF;--surface:#F8FAFC;
+  --border:#E2E8F0;--border2:#CBD5E1;
+  --primary:#2563EB;--primary-dark:#1D4ED8;--primary-light:#EFF6FF;--primary-mid:#DBEAFE;
+  --green:#16A34A;--green-bg:#F0FDF4;--green-border:#BBF7D0;
+  --yellow:#D97706;--yellow-bg:#FFFBEB;--yellow-border:#FDE68A;
+  --red:#DC2626;--red-bg:#FEF2F2;--red-border:#FECACA;
+  --blue-bg:#EFF6FF;--blue-border:#BFDBFE;
+  --text:#0F172A;--text2:#334155;--muted:#64748B;--muted2:#94A3B8;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.08);
+  --shadow-lg:0 10px 25px -3px rgba(0,0,0,.1);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+
+nav{position:sticky;top:0;z-index:200;background:var(--white);border-bottom:1px solid var(--border);box-shadow:var(--shadow)}
+.nav-inner{max-width:1300px;margin:0 auto;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-brand-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Poppins',sans-serif;font-size:13px;font-weight:800}
+.nav-brand-name{font-family:'Poppins',sans-serif;font-size:16px;font-weight:700;color:var(--text)}
+.nav-links{display:flex;gap:4px;align-items:center}
+.nav-link{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:6px;transition:all .2s}
+.nav-link:hover{background:var(--surface);color:var(--text)}
+.nav-link.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+
+.page{max-width:1300px;margin:0 auto;padding:32px 40px 60px}
+.page-header{margin-bottom:28px}
+.page-eyebrow{font-size:12px;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.page-title{font-family:'Poppins',sans-serif;font-size:28px;font-weight:800;color:var(--text);margin-bottom:6px}
+.page-sub{font-size:14px;color:var(--muted);line-height:1.6;max-width:560px}
+
+/* TABS */
+.tabs{display:flex;gap:0;margin-bottom:28px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:4px;width:fit-content;box-shadow:var(--shadow)}
+.tab{font-size:13px;font-weight:500;padding:9px 20px;border-radius:7px;cursor:pointer;color:var(--muted);transition:all .2s;border:none;background:transparent;display:flex;align-items:center;gap:7px}
+.tab:hover{color:var(--text);background:var(--surface)}
+.tab.active{background:var(--primary);color:#fff;font-weight:600;box-shadow:0 1px 4px rgba(37,99,235,.3)}
+
+.panel{display:none}
+.panel.active{display:grid;grid-template-columns:420px 1fr;gap:28px;align-items:start}
+
+/* FORM CARD */
+.form-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:28px;box-shadow:var(--shadow)}
+.form-card-icon{font-size:28px;margin-bottom:10px}
+.form-card-title{font-family:'Poppins',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px}
+.form-card-desc{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:22px}
+.divider{height:1px;background:var(--border);margin:20px 0}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px}
+.form-sublabel{font-size:11px;color:var(--muted);margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:13px;padding:10px 13px;border-radius:7px;outline:none;transition:all .2s;-moz-appearance:textfield;font-family:'Inter',sans-serif}
+.form-input::-webkit-outer-spin-button,.form-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.form-input:focus{border-color:var(--primary);background:var(--white);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.form-input::placeholder{color:var(--muted2)}
+
+.btn-run{width:100%;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;padding:13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;font-family:'Inter',sans-serif}
+.btn-run:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.btn-run:disabled{background:var(--border2);color:var(--muted2);cursor:not-allowed;transform:none;box-shadow:none}
+.err-box{display:none;padding:10px 13px;background:var(--red-bg);border:1px solid var(--red-border);border-radius:7px;margin-bottom:12px;font-size:12px;color:var(--red)}
+
+/* RESULT CARD */
+.result-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:28px;box-shadow:var(--shadow);position:sticky;top:84px}
+.result-empty{text-align:center;padding:48px 20px}
+.result-empty-icon{font-size:44px;margin-bottom:12px;opacity:.2}
+.result-empty-title{font-size:14px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.result-empty-sub{font-size:13px;color:var(--muted2)}
+
+.result-tag{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.result-verdict{font-family:'Poppins',sans-serif;font-size:36px;font-weight:800;line-height:1.1;margin-bottom:6px}
+.result-verdict.good{color:var(--green)}
+.result-verdict.warn{color:var(--yellow)}
+.result-verdict.bad{color:var(--red)}
+.result-verdict.info{color:var(--primary)}
+.result-sublabel{font-size:13px;color:var(--muted);margin-bottom:20px}
+
+.prob-section-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.prob-row{margin-bottom:12px}
+.prob-row-header{display:flex;justify-content:space-between;margin-bottom:5px}
+.prob-row-name{font-size:13px;color:var(--text2);font-weight:500}
+.prob-row-val{font-size:13px;font-weight:700;color:var(--text)}
+.prob-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.prob-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.prob-fill.green{background:var(--green)}
+.prob-fill.yellow{background:var(--yellow)}
+.prob-fill.red{background:var(--red)}
+.prob-fill.blue{background:var(--primary)}
+
+.insight-box{margin-top:20px;padding:14px;background:var(--primary-light);border:1px solid var(--primary-mid);border-radius:8px}
+.insight-title{font-size:11px;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.insight-text{font-size:13px;color:var(--text2);line-height:1.6}
+
+.loader-wrap{text-align:center;padding:48px 20px}
+.spinner{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+.loader-text{font-size:13px;color:var(--muted);font-weight:500}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .35s ease}
+
+@media(max-width:960px){
+  .nav-inner,.page{padding-left:20px;padding-right:20px}
+  .panel.active{grid-template-columns:1fr}
+  .result-card{position:static}
+  .form-row{grid-template-columns:1fr}
+  .tabs{flex-wrap:wrap;width:100%}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <div class="nav-brand-icon">AS</div>
+      <div class="nav-brand-name">ASPRS</div>
+    </a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/predict" class="nav-link active">Single Predict</a>
+      <a href="/bulk" class="nav-link">Bulk Upload</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-eyebrow">🎯 Live Inference</div>
+    <h1 class="page-title">Single Student Prediction</h1>
+    <p class="page-sub">Enter one student's data and get an instant prediction from any of the 4 ML models.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('kt')">🎯 KT Predictor</button>
+    <button class="tab" onclick="switchTab('dropout')">⚠️ Dropout Risk</button>
+    <button class="tab" onclick="switchTab('placement')">💼 Placement</button>
+    <button class="tab" onclick="switchTab('weak')">📚 Weak Subject</button>
+  </div>
+
+  <!-- KT -->
+  <div class="panel active" id="panel-kt">
+    <div class="form-card">
+      <div class="form-card-icon">🎯</div>
+      <div class="form-card-title">KT Risk Predictor</div>
+      <div class="form-card-desc">Enter Semester 1 data to predict whether the student is at risk of getting a KT next semester.</div>
+      <div class="divider"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Attendance %</label>
+          <span class="form-sublabel">Sem 1 attendance</span>
+          <input type="number" class="form-input" id="kt_attendance" placeholder="e.g. 75" min="0" max="100" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Semester Marks Avg</label>
+          <span class="form-sublabel">Final exam average</span>
+          <input type="number" class="form-input" id="kt_sem_marks" placeholder="e.g. 55" min="0" max="100" step="0.1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">UT Marks Avg</label>
+          <span class="form-sublabel">Unit Test average</span>
+          <input type="number" class="form-input" id="kt_ut_marks" placeholder="e.g. 14" min="0" max="20" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Internal Marks Avg</label>
+          <span class="form-sublabel">Internal assessment avg</span>
+          <input type="number" class="form-input" id="kt_internal_marks" placeholder="e.g. 18" min="0" max="25" step="0.1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject Count</label>
+          <span class="form-sublabel">Subjects in Sem 1</span>
+          <input type="number" class="form-input" id="kt_subject_count" placeholder="e.g. 6" min="1" max="10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Current KTs</label>
+          <span class="form-sublabel">Existing KTs in Sem 1</span>
+          <input type="number" class="form-input" id="kt_kts" placeholder="e.g. 0" min="0" max="10">
+        </div>
+      </div>
+      <div class="err-box" id="kt_error"></div>
+      <button class="btn-run" onclick="predict('kt')">▶ Run KT Prediction</button>
+    </div>
+    <div class="result-card" id="result-kt">
+      <div class="result-empty"><div class="result-empty-icon">🎯</div><div class="result-empty-title">Awaiting input</div><div class="result-empty-sub">Fill in the form and click Run to see the prediction.</div></div>
+    </div>
+  </div>
+
+  <!-- DROPOUT -->
+  <div class="panel" id="panel-dropout">
+    <div class="form-card">
+      <div class="form-card-icon">⚠️</div>
+      <div class="form-card-title">Dropout Risk Analyzer</div>
+      <div class="form-card-desc">Classify the student as High, Medium, or Low dropout risk using their cumulative academic profile.</div>
+      <div class="divider"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CGPA</label>
+          <span class="form-sublabel">Cumulative GPA (0–10)</span>
+          <input type="number" class="form-input" id="do_cgpa" placeholder="e.g. 6.5" min="0" max="10" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Attendance %</label>
+          <span class="form-sublabel">Overall attendance</span>
+          <input type="number" class="form-input" id="do_attendance" placeholder="e.g. 72" min="0" max="100" step="0.1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Total KTs</label>
+          <span class="form-sublabel">All-time KT count</span>
+          <input type="number" class="form-input" id="do_total_kts" placeholder="e.g. 3" min="0" max="30">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Avg Grade Score</label>
+          <span class="form-sublabel">Numerical grade avg (0–10)</span>
+          <input type="number" class="form-input" id="do_avg_grade" placeholder="e.g. 6.2" min="0" max="10" step="0.01">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Live KTs</label>
+          <span class="form-sublabel">Currently active KTs</span>
+          <input type="number" class="form-input" id="do_live_kt" placeholder="e.g. 1" min="0" max="10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">KT Attempt Level</label>
+          <span class="form-sublabel">1 = 1st attempt, 2 = 2nd…</span>
+          <input type="number" class="form-input" id="do_kt_attempt" placeholder="e.g. 1" min="0" max="5">
+        </div>
+      </div>
+      <div class="err-box" id="do_error"></div>
+      <button class="btn-run" onclick="predict('dropout')">▶ Run Dropout Analysis</button>
+    </div>
+    <div class="result-card" id="result-dropout">
+      <div class="result-empty"><div class="result-empty-icon">⚠️</div><div class="result-empty-title">Awaiting input</div><div class="result-empty-sub">Fill in the form and click Run to see the prediction.</div></div>
+    </div>
+  </div>
+
+  <!-- PLACEMENT -->
+  <div class="panel" id="panel-placement">
+    <div class="form-card">
+      <div class="form-card-icon">💼</div>
+      <div class="form-card-title">Placement Predictor</div>
+      <div class="form-card-desc">Predict placement chances as High, Moderate, or Low based on academic and profile factors.</div>
+      <div class="divider"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CGPA</label>
+          <span class="form-sublabel">Cumulative GPA (0–10)</span>
+          <input type="number" class="form-input" id="pl_cgpa" placeholder="e.g. 7.8" min="0" max="10" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Attendance %</label>
+          <span class="form-sublabel">Overall attendance</span>
+          <input type="number" class="form-input" id="pl_attendance" placeholder="e.g. 85" min="0" max="100" step="0.1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Projects</label>
+          <span class="form-sublabel">Completed projects</span>
+          <input type="number" class="form-input" id="pl_projects" placeholder="e.g. 3" min="0" max="20">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Internships</label>
+          <span class="form-sublabel">Physical internships done</span>
+          <input type="number" class="form-input" id="pl_internships" placeholder="e.g. 1" min="0" max="10">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Communication Skills</label>
+          <span class="form-sublabel">Self-rating (1–10)</span>
+          <input type="number" class="form-input" id="pl_comm" placeholder="e.g. 7" min="1" max="10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Professor Review</label>
+          <span class="form-sublabel">Faculty rating (1–10)</span>
+          <input type="number" class="form-input" id="pl_prof_review" placeholder="e.g. 7" min="1" max="10">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Total KTs</label>
+        <span class="form-sublabel">All-time KT count</span>
+        <input type="number" class="form-input" id="pl_total_kts" placeholder="e.g. 1" min="0" max="30">
+      </div>
+      <div class="err-box" id="pl_error"></div>
+      <button class="btn-run" onclick="predict('placement')">▶ Run Placement Prediction</button>
+    </div>
+    <div class="result-card" id="result-placement">
+      <div class="result-empty"><div class="result-empty-icon">💼</div><div class="result-empty-title">Awaiting input</div><div class="result-empty-sub">Fill in the form and click Run to see the prediction.</div></div>
+    </div>
+  </div>
+
+  <!-- WEAK SUBJECT -->
+  <div class="panel" id="panel-weak">
+    <div class="form-card">
+      <div class="form-card-icon">📚</div>
+      <div class="form-card-title">Weak Subject Predictor</div>
+      <div class="form-card-desc">Predict the performance grade (A/B/C/D) for a specific subject. Run for each subject separately to find the weakest one.</div>
+      <div class="divider"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">UT Marks</label>
+          <span class="form-sublabel">Unit Test marks</span>
+          <input type="number" class="form-input" id="ws_ut_marks" placeholder="e.g. 14" min="0" max="20" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Semester Marks</label>
+          <span class="form-sublabel">End semester marks</span>
+          <input type="number" class="form-input" id="ws_sem_marks" placeholder="e.g. 55" min="0" max="100" step="0.1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Internal Marks</label>
+          <span class="form-sublabel">Internal assessment</span>
+          <input type="number" class="form-input" id="ws_internal_marks" placeholder="e.g. 18" min="0" max="25" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Practical Marks</label>
+          <span class="form-sublabel">Lab / practical marks</span>
+          <input type="number" class="form-input" id="ws_practical_marks" placeholder="e.g. 22" min="0" max="25" step="0.1">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Attendance %</label>
+        <span class="form-sublabel">Subject-specific attendance</span>
+        <input type="number" class="form-input" id="ws_attendance" placeholder="e.g. 80" min="0" max="100" step="0.1">
+      </div>
+      <div class="err-box" id="ws_error"></div>
+      <button class="btn-run" onclick="predict('weak')">▶ Predict Subject Grade</button>
+    </div>
+    <div class="result-card" id="result-weak">
+      <div class="result-empty"><div class="result-empty-icon">📚</div><div class="result-empty-title">Awaiting input</div><div class="result-empty-sub">Fill in the form and click Run to see the prediction.</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(m){
+  const order=['kt','dropout','placement','weak']
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',order[i]===m))
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'))
+  document.getElementById('panel-'+m).classList.add('active')
+}
+function val(id){const v=document.getElementById(id).value.trim();return v===''?null:parseFloat(v)}
+function showErr(prefix,msg){const b=document.getElementById(prefix+'_error');b.textContent=msg;b.style.display='block'}
+function hideErr(prefix){document.getElementById(prefix+'_error').style.display='none'}
+
+function verdictClass(v){
+  const s=String(v).toLowerCase()
+  if(s.includes('kt likely')||s.includes('high risk')||s==='d'||s==='low')return'bad'
+  if(s.includes('medium')||s==='moderate'||s==='c')return'warn'
+  if(s.includes('no kt')||s.includes('low risk')||s==='high'||s==='a')return'good'
+  return'info'
+}
+function barColor(col,cls){
+  const c=String(cls).toLowerCase(),co=String(col).toLowerCase()
+  if(co.includes('kt_prob')||co.includes('prob_high risk')||co.includes('prob_low_%'))return'red'
+  if(co.includes('safe')||co.includes('prob_low risk')||co.includes('prob_high_%'))return'green'
+  if(co.includes('moderate')||co.includes('medium'))return'yellow'
+  if(c.includes('high risk')||c==='d'||c==='low')return'red'
+  if(c.includes('medium')||c==='moderate'||c==='c')return'yellow'
+  return'green'
+}
+function getInsight(model,result){
+  if(model==='kt'){
+    return result.raw===1
+      ?'⚠️ This student has a high probability of receiving a KT next semester. A counseling session and review of attendance and UT performance is recommended.'
+      :'✅ This student is on track with no KT risk detected for next semester based on current Semester 1 performance.'
+  }
+  if(model==='dropout'){
+    if(result.prediction==='High Risk')return'🚨 Immediate intervention recommended. Contact the student and guardian. Review attendance, KT backlog, and provide academic support.'
+    if(result.prediction==='Medium Risk')return'⚠️ Student requires monitoring. Schedule a counseling session and track attendance and grade trends over the next month.'
+    return'✅ Student shows stable academic patterns with low dropout risk. Continue regular academic tracking.'
+  }
+  if(model==='placement'){
+    if(result.prediction==='High')return'🏆 Strong placement candidate. Encourage participation in mock interviews and company-specific preparation programs.'
+    if(result.prediction==='Moderate')return'📈 Moderate placement chances. Recommend improving CGPA, adding projects/internships, and working on communication skills.'
+    return'📌 Low placement probability. Focused improvement in CGPA, KT clearance, and skill-building is advised.'
+  }
+  if(model==='weak'){
+    const m={A:'✅ Excellent performance in this subject. No intervention needed.',B:'📘 Good performance with minor gaps. Suggest additional practice in weak areas.',C:'⚠️ Average performance. Focused study and extra practice sessions recommended.',D:'🚨 This subject needs immediate attention. Consider tutoring or remedial classes.'}
+    return m[result.grade]||''
+  }
+}
+
+function renderResult(model,data){
+  const card=document.getElementById('result-'+model)
+  let verdict,sublabel,probabilities
+  if(model==='kt'){
+    verdict=data.prediction;sublabel=`${data.kt_probability}% probability of KT`
+    probabilities={'KT Likely':data.kt_probability,'No KT':data.safe_probability}
+  } else if(model==='dropout'){
+    verdict=data.prediction;sublabel='Dropout risk classification'
+    probabilities=data.probabilities
+  } else if(model==='placement'){
+    verdict=data.prediction;sublabel=data.label
+    probabilities=data.probabilities
+  } else {
+    verdict='Grade '+data.grade;sublabel=data.label
+    probabilities=data.probabilities
+  }
+  const vc=verdictClass(verdict)
+  const insight=getInsight(model,data)
+  const probHTML=Object.entries(probabilities).map(([cls,pct])=>{
+    const bc=barColor(cls,cls)
+    return`<div class="prob-row">
+      <div class="prob-row-header"><span class="prob-row-name">${cls}</span><span class="prob-row-val">${pct}%</span></div>
+      <div class="prob-track"><div class="prob-fill ${bc}" style="width:${pct}%"></div></div>
+    </div>`
+  }).join('')
+  card.innerHTML=`<div class="fade-in">
+    <div class="result-tag">Prediction Result</div>
+    <div class="result-verdict ${vc}">${verdict.toUpperCase()}</div>
+    <div class="result-sublabel">${sublabel}</div>
+    <div class="divider"></div>
+    <div class="prob-section-title">Class Probabilities</div>
+    ${probHTML}
+    ${insight?`<div class="insight-box"><div class="insight-title">💡 Recommendation</div><div class="insight-text">${insight}</div></div>`:''}
+  </div>`
+}
+
+async function predict(model){
+  let payload,prefix,endpoint
+  if(model==='kt'){
+    prefix='kt';endpoint='/api/kt'
+    const f={attendance:val('kt_attendance'),sem_marks_avg:val('kt_sem_marks'),ut_marks_avg:val('kt_ut_marks'),internal_marks_avg:val('kt_internal_marks'),subject_count:val('kt_subject_count'),current_kts:val('kt_kts')}
+    if(Object.values(f).some(v=>v===null)){showErr(prefix,'Please fill in all fields.');return}
+    payload=f
+  } else if(model==='dropout'){
+    prefix='do';endpoint='/api/dropout'
+    const f={cgpa:val('do_cgpa'),total_kts:val('do_total_kts'),attendance:val('do_attendance'),avg_grade_score:val('do_avg_grade'),live_kt:val('do_live_kt'),kt_attempt_level:val('do_kt_attempt')}
+    if(Object.values(f).some(v=>v===null)){showErr(prefix,'Please fill in all fields.');return}
+    payload=f
+  } else if(model==='placement'){
+    prefix='pl';endpoint='/api/placement'
+    const f={cgpa:val('pl_cgpa'),projects:val('pl_projects'),internships:val('pl_internships'),communication_skills:val('pl_comm'),professor_review:val('pl_prof_review'),attendance:val('pl_attendance'),total_kts:val('pl_total_kts')}
+    if(Object.values(f).some(v=>v===null)){showErr(prefix,'Please fill in all fields.');return}
+    payload=f
+  } else {
+    prefix='ws';endpoint='/api/weak-subject'
+    const f={ut_marks:val('ws_ut_marks'),semester_marks:val('ws_sem_marks'),internal_marks:val('ws_internal_marks'),practical_marks:val('ws_practical_marks'),attendance:val('ws_attendance')}
+    if(Object.values(f).some(v=>v===null)){showErr(prefix,'Please fill in all fields.');return}
+    payload=f
+  }
+  hideErr(prefix)
+  const card=document.getElementById('result-'+model)
+  card.innerHTML=`<div class="loader-wrap"><div class="spinner"></div><div class="loader-text">Running model inference...</div></div>`
+  try{
+    const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    const data=await res.json()
+    if(data.error){showErr(prefix,'Error: '+data.error);card.innerHTML=`<div class="result-empty"><div class="result-empty-icon">❌</div><div class="result-empty-title">Model Error</div><div class="result-empty-sub">${data.error}</div></div>`}
+    else renderResult(model,data)
+  } catch(e){
+    showErr(prefix,'Cannot reach server. Make sure python app.py is running on port 5000.')
+    card.innerHTML=`<div class="result-empty"><div class="result-empty-icon">🔌</div><div class="result-empty-title">Server not reachable</div><div class="result-empty-sub">Run: python app.py</div></div>`
+  }
+}
+</script>
+</body>
+</html>
+<script>
+// ── Ripple on buttons ──────────────────────────────────────────────────────
+document.querySelectorAll('.btn-run').forEach(btn=>{
+  btn.style.position='relative'; btn.style.overflow='hidden'
+  btn.addEventListener('click',function(e){
+    if(this.disabled)return
+    const r=document.createElement('span')
+    const d=Math.max(this.clientWidth,this.clientHeight)
+    const rect=this.getBoundingClientRect()
+    r.style.cssText=`position:absolute;border-radius:50%;background:rgba(255,255,255,0.35);width:${d}px;height:${d}px;left:${e.clientX-rect.left-d/2}px;top:${e.clientY-rect.top-d/2}px;transform:scale(0);animation:ripple .5s linear;pointer-events:none`
+    this.appendChild(r); setTimeout(()=>r.remove(),500)
+  })
+})
+
+// ── Input focus glow ───────────────────────────────────────────────────────
+document.querySelectorAll('.form-input').forEach(inp=>{
+  inp.addEventListener('focus',function(){
+    this.closest('.form-group').querySelector('.form-label').style.color='var(--primary)'
+  })
+  inp.addEventListener('blur',function(){
+    this.closest('.form-group').querySelector('.form-label').style.color=''
+  })
+})
+
+// ── Tab switch animation ───────────────────────────────────────────────────
+const origSwitch=window.switchTab
+window.switchTab=function(m){
+  origSwitch(m)
+  const panel=document.getElementById('panel-'+m)
+  panel.style.opacity='0'; panel.style.transform='translateY(10px)'
+  requestAnimationFrame(()=>{
+    panel.style.transition='opacity .3s ease,transform .3s ease'
+    panel.style.opacity='1'; panel.style.transform=''
+  })
+}
+
+// ── Result card entrance ───────────────────────────────────────────────────
+const origRender=window.renderResult
+window.renderResult=function(model,data){
+  origRender(model,data)
+  const card=document.getElementById('result-'+model)
+  card.style.opacity='0'; card.style.transform='scale(0.97)'
+  requestAnimationFrame(()=>{
+    card.style.transition='opacity .35s ease,transform .35s ease'
+    card.style.opacity='1'; card.style.transform=''
+  })
+}
+
+// ── Probability bar fill animation ─────────────────────────────────────────
+const barObs=new MutationObserver(()=>{
+  document.querySelectorAll('.prob-fill').forEach(fill=>{
+    const w=fill.style.width
+    fill.style.width='0'
+    setTimeout(()=>{fill.style.transition='width .8s cubic-bezier(.4,0,.2,1)'; fill.style.width=w},50)
+  })
+})
+document.querySelectorAll('[id^=result-]').forEach(el=>barObs.observe(el,{childList:true,subtree:true}))
+
+// ── Scroll progress bar ────────────────────────────────────────────────────
+const bar=document.createElement('div')
+bar.style.cssText='position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#2563EB,#0EA5E9);z-index:9999;width:0;transition:width .1s linear'
+document.body.appendChild(bar)
+window.addEventListener('scroll',()=>{
+  const pct=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight))*100
+  bar.style.width=pct+'%'
+})
+
+// ── Form field shake on empty submit ──────────────────────────────────────
+document.querySelectorAll('.btn-run').forEach(btn=>{
+  const origClick=btn.onclick
+  btn.onclick=function(e){
+    const panel=this.closest('.panel')
+    const empties=panel?[...panel.querySelectorAll('.form-input')].filter(i=>i.value.trim()===''):[]
+    if(empties.length){
+      empties.forEach(i=>{
+        i.style.borderColor='var(--red)'
+        i.style.animation='shake .3s ease'
+        setTimeout(()=>{i.style.animation='';i.style.borderColor=''},1200)
+      })
+    }
+    if(origClick) origClick.call(this,e)
+  }
+})
+
+// ── Stat number pulse in result verdict ───────────────────────────────────
+const verdictObs=new MutationObserver(muts=>{
+  muts.forEach(m=>{
+    m.addedNodes.forEach(n=>{
+      if(n.nodeType===1){
+        const v=n.querySelector?.('.result-verdict')
+        if(v){v.style.transform='scale(0.8)';v.style.opacity='0';requestAnimationFrame(()=>{v.style.transition='all .4s cubic-bezier(.34,1.56,.64,1)';v.style.transform='';v.style.opacity='1'})}
+      }
+    })
+  })
+})
+document.querySelectorAll('[id^=result-]').forEach(el=>verdictObs.observe(el,{childList:true}))
+</script>
+<style>
+@keyframes ripple{to{transform:scale(2.5);opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.form-group .form-label{transition:color .2s ease}
+.form-input{transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
+.tab{transition:all .25s ease}
+</style>

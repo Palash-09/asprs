@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASPRS — AI Based Student Performance Review System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F0F4F8;--white:#FFFFFF;--surface:#F8FAFC;
+  --border:#E2E8F0;--border2:#CBD5E1;
+  --primary:#2563EB;--primary-dark:#1D4ED8;--primary-light:#EFF6FF;--primary-mid:#DBEAFE;
+  --green:#16A34A;--green-bg:#F0FDF4;--green-border:#BBF7D0;
+  --yellow:#D97706;--yellow-bg:#FFFBEB;
+  --red:#DC2626;--red-bg:#FEF2F2;
+  --text:#0F172A;--text2:#334155;--muted:#64748B;--muted2:#94A3B8;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.08),0 2px 4px -1px rgba(0,0,0,.06);
+  --shadow-lg:0 10px 25px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:var(--white);border-bottom:1px solid var(--border);box-shadow:var(--shadow)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-brand-icon{width:38px;height:38px;background:var(--primary);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Poppins',sans-serif;font-size:14px;font-weight:800}
+.nav-brand-name{font-family:'Poppins',sans-serif;font-size:17px;font-weight:700;color:var(--text)}
+.nav-brand-tag{font-size:10px;font-weight:500;color:var(--white);background:var(--primary);padding:2px 8px;border-radius:20px;margin-left:6px;vertical-align:middle}
+.nav-links{display:flex;gap:4px;align-items:center}
+.nav-link{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:6px;transition:all .2s}
+.nav-link:hover{background:var(--surface);color:var(--text)}
+.nav-cta{background:var(--primary);color:#fff;font-size:13px;font-weight:600;text-decoration:none;padding:9px 20px;border-radius:8px;transition:all .2s;box-shadow:0 1px 4px rgba(37,99,235,.3)}
+.nav-cta:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.35)}
+
+/* HERO */
+.hero{background:var(--white);border-bottom:1px solid var(--border)}
+.hero-inner{max-width:1200px;margin:0 auto;padding:80px 40px 72px;display:grid;grid-template-columns:1fr 420px;gap:60px;align-items:center}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--primary-light);color:var(--primary);font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;margin-bottom:24px;border:1px solid var(--primary-mid)}
+.hero-eyebrow::before{content:'';width:6px;height:6px;background:var(--primary);border-radius:50%;animation:blink 2s ease-in-out infinite}
+h1{font-family:'Poppins',sans-serif;font-size:clamp(36px,4.5vw,54px);font-weight:800;line-height:1.1;color:var(--text);margin-bottom:20px}
+h1 span{color:var(--primary)}
+.hero-desc{font-size:16px;color:var(--muted);line-height:1.75;font-weight:400;margin-bottom:36px;max-width:480px}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-primary{background:var(--primary);color:#fff;font-size:14px;font-weight:600;text-decoration:none;padding:13px 28px;border-radius:8px;transition:all .2s;box-shadow:0 2px 8px rgba(37,99,235,.3);display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 6px 16px rgba(37,99,235,.35)}
+.btn-secondary{background:var(--white);color:var(--text2);font-size:14px;font-weight:600;text-decoration:none;padding:13px 28px;border-radius:8px;border:1px solid var(--border2);transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-secondary:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+
+/* HERO CARD */
+.hero-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;box-shadow:var(--shadow-lg)}
+.hero-card-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.hero-card-title::before{content:'';width:8px;height:8px;background:var(--green);border-radius:50%;animation:blink 2s ease-in-out infinite}
+.model-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--white);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;transition:all .2s}
+.model-item:hover{border-color:var(--primary);transform:translateX(4px);box-shadow:var(--shadow)}
+.model-item:last-child{margin-bottom:0}
+.model-icon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.mi-blue{background:var(--primary-light)}
+.mi-red{background:#FEF2F2}
+.mi-green{background:var(--green-bg)}
+.mi-yellow{background:var(--yellow-bg)}
+.model-info h4{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.model-info p{font-size:11px;color:var(--muted);font-weight:400}
+.model-algo{margin-left:auto;font-size:10px;font-weight:600;color:var(--primary);background:var(--primary-light);padding:3px 8px;border-radius:4px;white-space:nowrap}
+
+/* STATS STRIP */
+.stats-strip{background:var(--primary);padding:28px 40px}
+.stats-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
+.stat-val{font-family:'Poppins',sans-serif;font-size:36px;font-weight:800;color:#fff;line-height:1}
+.stat-label{font-size:12px;color:rgba(255,255,255,.7);margin-top:4px;font-weight:500;text-transform:uppercase;letter-spacing:.07em}
+
+/* SECTION */
+.section{padding:72px 40px}
+.section-inner{max-width:1200px;margin:0 auto}
+.section-eyebrow{font-size:12px;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.section-title{font-family:'Poppins',sans-serif;font-size:clamp(26px,3vw,36px);font-weight:800;color:var(--text);margin-bottom:12px}
+.section-sub{font-size:15px;color:var(--muted);max-width:520px;line-height:1.65;margin-bottom:48px}
+
+/* MODEL CARDS */
+.models-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.model-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:28px;box-shadow:var(--shadow);transition:all .3s;position:relative;overflow:hidden}
+.model-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.model-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--primary)}
+.model-card:hover::before{transform:scaleX(1)}
+.mc-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.mc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.mc-num{font-size:11px;font-weight:600;color:var(--muted2);background:var(--surface);padding:4px 10px;border-radius:6px;border:1px solid var(--border)}
+.mc-name{font-family:'Poppins',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px}
+.mc-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:16px}
+.mc-tags{display:flex;flex-wrap:wrap;gap:6px}
+.mc-tag{font-size:11px;font-weight:500;padding:3px 10px;border-radius:5px}
+.tag-blue{background:var(--primary-mid);color:var(--primary-dark)}
+.tag-green{background:var(--green-bg);color:var(--green)}
+.tag-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.mc-output{margin-top:16px;padding:12px 14px;background:var(--surface);border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)}
+.mc-output strong{color:var(--primary);font-weight:600}
+
+/* HOW IT WORKS */
+.pipeline-section{background:var(--white);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.pipeline-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start}
+.steps{display:flex;flex-direction:column;gap:4px}
+.step-item{display:flex;gap:16px;padding:16px;border-radius:10px;transition:all .2s;cursor:default}
+.step-item:hover{background:var(--primary-light)}
+.step-num{width:36px;height:36px;background:var(--primary-light);color:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;flex-shrink:0;transition:all .2s}
+.step-item:hover .step-num{background:var(--primary);color:#fff}
+.step-body h4{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.step-body p{font-size:13px;color:var(--muted);line-height:1.55}
+.pipeline-info h3{font-family:'Poppins',sans-serif;font-size:28px;font-weight:800;color:var(--text);margin-bottom:16px;line-height:1.15}
+.pipeline-info p{font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:14px}
+.feature-list{margin-top:24px;display:flex;flex-direction:column;gap:10px}
+.feature-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2)}
+.feature-item::before{content:'✓';width:20px;height:20px;background:var(--green-bg);color:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;text-align:center;line-height:20px}
+
+/* TECH STACK */
+.tech-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.tech-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:24px 20px;text-align:center;box-shadow:var(--shadow);transition:all .2s}
+.tech-card:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.tech-icon{font-size:32px;margin-bottom:12px;display:block}
+.tech-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.tech-role{font-size:11px;color:var(--muted)}
+
+/* CTA STRIP */
+.cta-strip{background:linear-gradient(135deg,var(--primary) 0%,#1E40AF 100%);padding:64px 40px;text-align:center}
+.cta-inner{max-width:600px;margin:0 auto}
+.cta-title{font-family:'Poppins',sans-serif;font-size:32px;font-weight:800;color:#fff;margin-bottom:12px}
+.cta-sub{font-size:15px;color:rgba(255,255,255,.8);margin-bottom:32px;line-height:1.6}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-white{background:#fff;color:var(--primary);font-size:14px;font-weight:700;text-decoration:none;padding:13px 28px;border-radius:8px;transition:all .2s;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.btn-white:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.btn-outline-white{background:transparent;color:#fff;font-size:14px;font-weight:600;text-decoration:none;padding:13px 28px;border-radius:8px;border:2px solid rgba(255,255,255,.5);transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-outline-white:hover{border-color:#fff;background:rgba(255,255,255,.1)}
+
+/* FOOTER */
+footer{background:var(--white);border-top:1px solid var(--border);padding:32px 40px}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.footer-brand{display:flex;align-items:center;gap:10px}
+.footer-brand-icon{width:32px;height:32px;background:var(--primary);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Poppins',sans-serif;font-size:12px;font-weight:800}
+.footer-brand-name{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
+.footer-text{font-size:12px;color:var(--muted);text-align:right;line-height:1.6}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+@media(max-width:900px){
+  .nav-inner,.section,.stats-strip,.cta-strip,footer{padding-left:20px;padding-right:20px}
+  .hero-inner{grid-template-columns:1fr;padding:48px 20px}
+  .hero-card{display:none}
+  .stats-inner{grid-template-columns:repeat(2,1fr)}
+  .models-grid,.pipeline-grid,.tech-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <div class="nav-brand-icon">AS</div>
+      <div>
+        <span class="nav-brand-name">ASPRS</span>
+        <span class="nav-brand-tag">v1.0</span>
+      </div>
+    </a>
+    <div class="nav-links">
+      <a href="#models" class="nav-link">Models</a>
+      <a href="#pipeline" class="nav-link">Pipeline</a>
+      <a href="#tech" class="nav-link">Stack</a>
+      <a href="/bulk" class="nav-link">Bulk Upload</a>
+      <a href="/predict" class="nav-cta">Single Predict →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">AIML Department · Final Year Project</div>
+      <h1>AI-Based Student<br><span>Performance Review</span><br>System</h1>
+      <p class="hero-desc">4 machine learning models that predict KT risk, dropout probability, placement chances, and subject performance — giving faculty actionable academic insights in seconds.</p>
+      <div class="hero-btns">
+        <a href="/bulk" class="btn-primary">📊 Bulk Upload →</a>
+        <a href="/predict" class="btn-secondary">Single Prediction</a>
+      </div>
+    </div>
+    <div>
+      <div class="hero-card">
+        <div class="hero-card-title">Active ML Models</div>
+        <div class="model-item">
+          <div class="model-icon mi-blue">🎯</div>
+          <div class="model-info"><h4>KT Risk Predictor</h4><p>Predicts next-semester KT probability</p></div>
+          <span class="model-algo">RF · 350 trees</span>
+        </div>
+        <div class="model-item">
+          <div class="model-icon mi-red">⚠️</div>
+          <div class="model-info"><h4>Dropout Risk Analyzer</h4><p>High / Medium / Low risk classification</p></div>
+          <span class="model-algo">RF · 350 trees</span>
+        </div>
+        <div class="model-item">
+          <div class="model-icon mi-green">💼</div>
+          <div class="model-info"><h4>Placement Predictor</h4><p>Campus placement chance estimation</p></div>
+          <span class="model-algo">RF · 250 trees</span>
+        </div>
+        <div class="model-item">
+          <div class="model-icon mi-yellow">📚</div>
+          <div class="model-info"><h4>Weak Subject Detector</h4><p>Identifies weakest subject per student</p></div>
+          <span class="model-algo">RF · 400 trees</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div><div class="stat-val">4</div><div class="stat-label">ML Models</div></div>
+    <div><div class="stat-val">24</div><div class="stat-label">Input Features</div></div>
+    <div><div class="stat-val">RF</div><div class="stat-label">Algorithm</div></div>
+    <div><div class="stat-val">Real-time</div><div class="stat-label">Inference</div></div>
+  </div>
+</div>
+
+<!-- MODELS -->
+<section class="section" id="models">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-eyebrow">ML Systems</div>
+      <h2 class="section-title">4 Models. 4 Insights.</h2>
+      <p class="section-sub">Each model is a trained Random Forest Classifier, independently specialized for a single prediction task.</p>
+    </div>
+    <div class="models-grid reveal">
+      <div class="model-card">
+        <div class="mc-header">
+          <div class="mc-icon mi-blue">🎯</div>
+          <span class="mc-num">MODEL 01</span>
+        </div>
+        <div class="mc-name">KT Risk Predictor</div>
+        <p class="mc-desc">Predicts whether a student will face a Keep Term (KT) next semester based on their Semester 1 performance. Uses 6 features including attendance, marks averages, and existing KT count.</p>
+        <div class="mc-tags">
+          <span class="mc-tag tag-blue">Random Forest</span>
+          <span class="mc-tag tag-blue">Binary Classification</span>
+          <span class="mc-tag tag-green">6 Features</span>
+        </div>
+        <div class="mc-output">Output: <strong>KT Likely / No KT</strong> + probability %</div>
+      </div>
+      <div class="model-card">
+        <div class="mc-header">
+          <div class="mc-icon mi-red">⚠️</div>
+          <span class="mc-num">MODEL 02</span>
+        </div>
+        <div class="mc-name">Dropout Risk Analyzer</div>
+        <p class="mc-desc">Classifies each student into High, Medium, or Low dropout risk using CGPA, total KTs, attendance, average grade score, live KTs, and KT attempt level.</p>
+        <div class="mc-tags">
+          <span class="mc-tag tag-blue">Random Forest</span>
+          <span class="mc-tag tag-yellow">3-Class</span>
+          <span class="mc-tag tag-green">6 Features</span>
+        </div>
+        <div class="mc-output">Output: <strong>High / Medium / Low Risk</strong> + probabilities</div>
+      </div>
+      <div class="model-card">
+        <div class="mc-header">
+          <div class="mc-icon mi-green">💼</div>
+          <span class="mc-num">MODEL 03</span>
+        </div>
+        <div class="mc-name">Placement Predictor</div>
+        <p class="mc-desc">Estimates campus placement chances using CGPA, projects, internships, communication skills, professor reviews, attendance, and KT count. 7-feature model.</p>
+        <div class="mc-tags">
+          <span class="mc-tag tag-blue">Random Forest</span>
+          <span class="mc-tag tag-yellow">3-Class</span>
+          <span class="mc-tag tag-green">7 Features</span>
+        </div>
+        <div class="mc-output">Output: <strong>High / Moderate / Low</strong> placement chance</div>
+      </div>
+      <div class="model-card">
+        <div class="mc-header">
+          <div class="mc-icon mi-yellow">📚</div>
+          <span class="mc-num">MODEL 04</span>
+        </div>
+        <div class="mc-name">Weak Subject Detector</div>
+        <p class="mc-desc">Predicts performance grade (A/B/C/D) for each subject using UT marks, semester marks, internal marks, practical marks, and attendance. Identifies the weakest subject per student.</p>
+        <div class="mc-tags">
+          <span class="mc-tag tag-blue">Random Forest</span>
+          <span class="mc-tag tag-yellow">Grade A–D</span>
+          <span class="mc-tag tag-green">5 Features</span>
+        </div>
+        <div class="mc-output">Output: <strong>Grade A / B / C / D</strong> + weakest subject flagged</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section class="section pipeline-section" id="pipeline">
+  <div class="section-inner">
+    <div class="pipeline-grid">
+      <div class="reveal">
+        <div class="section-eyebrow">System Pipeline</div>
+        <h3 class="pipeline-info" style="font-family:'Poppins',sans-serif;font-size:28px;font-weight:800;color:var(--text);margin-bottom:16px">How It Works</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:14px">ASPRS uses a modular ML pipeline where each model specializes in one task. Student data flows through preprocessing into the prediction engine, which runs all models and aggregates results into a clear dashboard.</p>
+        <p style="font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:14px">A separate StandardScaler is paired with each model, ensuring inputs are normalized using the exact same parameters applied during training.</p>
+        <div class="feature-list">
+          <div class="feature-item">Upload Excel → instant batch predictions for all students</div>
+          <div class="feature-item">All 4 models run independently via REST API</div>
+          <div class="feature-item">350–400 decision trees per model for accuracy</div>
+          <div class="feature-item">Download results as formatted Excel with one click</div>
+          <div class="feature-item">Per-student breakdown + class-wide summary stats</div>
+        </div>
+      </div>
+      <div class="steps reveal">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-body"><h4>Data Upload</h4><p>Faculty uploads an Excel sheet with student records — marks, attendance, CGPA, skills, etc.</p></div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-body"><h4>Feature Mapping</h4><p>Input columns are mapped to the exact feature vectors each model was trained on.</p></div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-body"><h4>Normalization</h4><p>Each model's StandardScaler transforms the data to match training distribution.</p></div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-body"><h4>Random Forest Inference</h4><p>Hundreds of decision trees vote on the output. Class probabilities computed from vote ratios.</p></div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-body"><h4>Results Dashboard</h4><p>Per-student predictions shown on screen with summary stats and Excel download option.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section class="section" id="tech" style="background:var(--white);border-top:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-eyebrow">Technology Stack</div>
+      <h2 class="section-title">Built With</h2>
+      <p class="section-sub">Industry-standard tools used in every component of the system.</p>
+    </div>
+    <div class="tech-grid reveal">
+      <div class="tech-card"><span class="tech-icon">🐍</span><div class="tech-name">Python 3</div><div class="tech-role">Core language</div></div>
+      <div class="tech-card"><span class="tech-icon">🔬</span><div class="tech-name">Scikit-Learn</div><div class="tech-role">ML models & scalers</div></div>
+      <div class="tech-card"><span class="tech-icon">⚡</span><div class="tech-name">Flask</div><div class="tech-role">REST API backend</div></div>
+      <div class="tech-card"><span class="tech-icon">📦</span><div class="tech-name">Joblib</div><div class="tech-role">Model serialization</div></div>
+      <div class="tech-card"><span class="tech-icon">🐼</span><div class="tech-name">Pandas</div><div class="tech-role">Data processing</div></div>
+      <div class="tech-card"><span class="tech-icon">🔢</span><div class="tech-name">NumPy</div><div class="tech-role">Numerical ops</div></div>
+      <div class="tech-card"><span class="tech-icon">📊</span><div class="tech-name">OpenPyXL</div><div class="tech-role">Excel export</div></div>
+      <div class="tech-card"><span class="tech-icon">🌲</span><div class="tech-name">Random Forest</div><div class="tech-role">Core algorithm</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-strip">
+  <div class="cta-inner">
+    <h2 class="cta-title">Ready to Analyze Your Students?</h2>
+    <p class="cta-sub">Upload a class Excel sheet and get instant predictions for every student across all 4 ML models.</p>
+    <div class="cta-btns">
+      <a href="/bulk" class="btn-white">📊 Bulk Upload →</a>
+      <a href="/predict" class="btn-outline-white">Single Prediction</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-brand-icon">AS</div>
+      <div class="footer-brand-name">ASPRS</div>
+    </div>
+    <div class="footer-text">
+      AI Based Student Performance Review System<br>
+      AIML Department · Final Year Project · 2024–25
+    </div>
+  </div>
+</footer>
+
+<script>
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible') })
+}, { threshold: 0.1 })
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el))
+</script>
+</body>
+</html>
+<script>
+// ── Ripple effect on buttons ───────────────────────────────────────────────
+document.querySelectorAll('.btn-primary,.btn-secondary,.btn-white,.btn-outline-white,.nav-cta').forEach(btn=>{
+  btn.style.position='relative'; btn.style.overflow='hidden'
+  btn.addEventListener('click',function(e){
+    const r=document.createElement('span')
+    const d=Math.max(this.clientWidth,this.clientHeight)
+    const rect=this.getBoundingClientRect()
+    r.style.cssText=`position:absolute;border-radius:50%;background:rgba(255,255,255,0.4);width:${d}px;height:${d}px;left:${e.clientX-rect.left-d/2}px;top:${e.clientY-rect.top-d/2}px;transform:scale(0);animation:ripple .5s linear;pointer-events:none`
+    this.appendChild(r); setTimeout(()=>r.remove(),500)
+  })
+})
+
+// ── Counter animation for stat values ─────────────────────────────────────
+function animateCounter(el,target,duration=1200){
+  const isNum=/^\d+$/.test(String(target))
+  if(!isNum){el.textContent=target;return}
+  const start=performance.now()
+  const from=0; const to=parseInt(target)
+  function step(now){
+    const p=Math.min((now-start)/duration,1)
+    const ease=1-Math.pow(1-p,3)
+    el.textContent=Math.floor(from+(to-from)*ease)
+    if(p<1)requestAnimationFrame(step)
+    else el.textContent=target
+  }
+  requestAnimationFrame(step)
+}
+
+// Trigger stat counters when stats strip is visible
+const statsObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.querySelectorAll('.stat-val').forEach(el=>{
+        const v=el.textContent.trim()
+        animateCounter(el,v)
+      })
+      statsObs.unobserve(e.target)
+    }
+  })
+},{threshold:0.5})
+const strip=document.querySelector('.stats-strip')
+if(strip) statsObs.observe(strip)
+
+// ── Tilt effect on model cards ─────────────────────────────────────────────
+document.querySelectorAll('.model-card,.tech-card').forEach(card=>{
+  card.addEventListener('mousemove',function(e){
+    const rect=this.getBoundingClientRect()
+    const x=(e.clientX-rect.left)/rect.width-0.5
+    const y=(e.clientY-rect.top)/rect.height-0.5
+    this.style.transform=`translateY(-4px) rotateX(${-y*6}deg) rotateY(${x*6}deg)`
+    this.style.transition='transform 0.1s ease'
+  })
+  card.addEventListener('mouseleave',function(){
+    this.style.transform=''; this.style.transition='transform 0.4s ease'
+  })
+})
+
+// ── Scroll progress bar ────────────────────────────────────────────────────
+const bar=document.createElement('div')
+bar.style.cssText='position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#2563EB,#0EA5E9);z-index:9999;transition:width .1s linear;width:0'
+document.body.appendChild(bar)
+window.addEventListener('scroll',()=>{
+  const pct=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight))*100
+  bar.style.width=pct+'%'
+})
+
+// ── Smooth active nav link highlight on scroll ─────────────────────────────
+const sections=document.querySelectorAll('section[id]')
+const navLinks=document.querySelectorAll('.nav-link')
+const scrollSpy=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navLinks.forEach(l=>{
+        l.classList.toggle('active',l.getAttribute('href')==='#'+e.target.id)
+      })
+    }
+  })
+},{threshold:0.4})
+sections.forEach(s=>scrollSpy.observe(s))
+
+// ── Hero text typing effect ────────────────────────────────────────────────
+const heroTag=document.querySelector('.hero-eyebrow')
+if(heroTag){
+  const text=heroTag.textContent; heroTag.textContent=''
+  let i=0
+  const type=()=>{if(i<text.length){heroTag.textContent+=text[i++];setTimeout(type,28)}}
+  setTimeout(type,400)
+}
+
+// ── Model item slide-in stagger ────────────────────────────────────────────
+document.querySelectorAll('.model-item').forEach((el,i)=>{
+  el.style.opacity='0'; el.style.transform='translateX(20px)'
+  setTimeout(()=>{el.style.transition='all 0.4s ease';el.style.opacity='1';el.style.transform=''},600+i*120)
+})
+
+// ── Step items animate on hover with pulse ─────────────────────────────────
+document.querySelectorAll('.step-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{
+    el.querySelector('.step-num').style.transform='scale(1.1)'
+    el.querySelector('.step-num').style.transition='transform .2s ease'
+  })
+  el.addEventListener('mouseleave',()=>{
+    el.querySelector('.step-num').style.transform=''
+  })
+})
+</script>
+<style>
+@keyframes ripple{to{transform:scale(2.5);opacity:0}}
+.model-card{transform-style:preserve-3d;perspective:800px}
+.tech-card{transform-style:preserve-3d;perspective:600px}
+.nav-link{position:relative}
+.nav-link::after{content:'';position:absolute;bottom:-2px;left:50%;right:50%;height:2px;background:var(--primary);transition:all .25s ease;border-radius:1px}
+.nav-link.active::after,.nav-link:hover::after{left:14px;right:14px}
+.hero-eyebrow{border-right:2px solid var(--primary);padding-right:4px;animation:cursor-blink .8s step-end infinite}
+@keyframes cursor-blink{50%{border-color:transparent}}
+</style>

@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASPRS — Bulk Predictions</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F0F4F8;--white:#FFFFFF;--surface:#F8FAFC;
+  --border:#E2E8F0;--border2:#CBD5E1;
+  --primary:#2563EB;--primary-dark:#1D4ED8;--primary-light:#EFF6FF;--primary-mid:#DBEAFE;
+  --green:#16A34A;--green-bg:#F0FDF4;--green-border:#BBF7D0;
+  --yellow:#D97706;--yellow-bg:#FFFBEB;--yellow-border:#FDE68A;
+  --red:#DC2626;--red-bg:#FEF2F2;--red-border:#FECACA;
+  --blue-bg:#EFF6FF;--blue-border:#BFDBFE;
+  --text:#0F172A;--text2:#334155;--muted:#64748B;--muted2:#94A3B8;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.08),0 2px 4px -1px rgba(0,0,0,.06);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.08),0 4px 6px -2px rgba(0,0,0,.05);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+
+nav{position:sticky;top:0;z-index:200;background:var(--white);border-bottom:1px solid var(--border);box-shadow:var(--shadow)}
+.nav-inner{max-width:1400px;margin:0 auto;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-brand-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Poppins',sans-serif;font-size:14px;font-weight:700}
+.nav-brand-name{font-family:'Poppins',sans-serif;font-size:16px;font-weight:700;color:var(--text)}
+.nav-links{display:flex;gap:4px}
+.nav-link{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:6px;transition:all .2s}
+.nav-link:hover{background:var(--surface);color:var(--text)}
+.nav-link.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+
+.page{max-width:1400px;margin:0 auto;padding:32px 40px 60px}
+.page-header{margin-bottom:28px}
+.page-eyebrow{font-size:12px;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.page-title{font-family:'Poppins',sans-serif;font-size:28px;font-weight:800;color:var(--text);margin-bottom:6px}
+.page-sub{font-size:14px;color:var(--muted);max-width:600px;line-height:1.6}
+
+.tabs{display:flex;gap:0;margin-bottom:28px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:4px;width:fit-content;box-shadow:var(--shadow)}
+.tab{font-size:13px;font-weight:500;padding:9px 20px;border-radius:7px;cursor:pointer;color:var(--muted);transition:all .2s;border:none;background:transparent;display:flex;align-items:center;gap:7px}
+.tab:hover{color:var(--text);background:var(--surface)}
+.tab.active{background:var(--primary);color:#fff;font-weight:600;box-shadow:0 1px 4px rgba(37,99,235,.3)}
+
+.panel{display:none}
+.panel.active{display:block}
+
+.upload-row{display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:start}
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow)}
+.card-body{padding:24px}
+.card-title{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+.card-desc{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:20px}
+
+.drop-zone{border:2px dashed var(--border2);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .25s;position:relative;margin-bottom:14px;background:var(--surface)}
+.drop-zone:hover,.drop-zone.over{border-color:var(--primary);background:var(--primary-light)}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:30px;margin-bottom:8px}
+.drop-title{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:3px}
+.drop-sub{font-size:11px;color:var(--muted)}
+.file-tag{display:inline-flex;align-items:center;gap:6px;background:var(--primary-light);color:var(--primary);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;margin-top:8px;display:none}
+
+.btn-tpl{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:9px;border:1px solid var(--border2);border-radius:7px;background:var(--white);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .2s;margin-bottom:8px}
+.btn-tpl:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+.btn-run{width:100%;padding:11px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-run:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.btn-run:disabled{background:var(--border2);color:var(--muted);cursor:not-allowed;transform:none;box-shadow:none}
+
+.req-cols{margin-top:16px;padding:14px;background:var(--surface);border-radius:8px;border:1px solid var(--border)}
+.req-cols-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.col-pill{display:inline-block;font-size:10px;font-weight:500;background:var(--primary-mid);color:var(--primary-dark);padding:3px 8px;border-radius:4px;margin:2px}
+
+.err-box{display:none;padding:10px 14px;background:var(--red-bg);border:1px solid var(--red-border);border-radius:7px;margin-bottom:10px;font-size:12px;color:var(--red)}
+
+/* RESULTS */
+.results-card{background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.results-empty{padding:64px 40px;text-align:center}
+.results-empty-icon{font-size:44px;margin-bottom:12px;opacity:.25}
+.results-empty-title{font-size:14px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.results-empty-sub{font-size:13px;color:var(--muted2)}
+
+.summary-bar{display:grid;border-bottom:1px solid var(--border)}
+.summary-card{padding:18px 16px;border-right:1px solid var(--border);text-align:center}
+.summary-card:last-child{border-right:none}
+.summary-val{font-family:'Poppins',sans-serif;font-size:28px;font-weight:800;line-height:1}
+.summary-val.red{color:var(--red)}.summary-val.yellow{color:var(--yellow)}
+.summary-val.green{color:var(--green)}.summary-val.blue{color:var(--primary)}
+.summary-label{font-size:10px;font-weight:600;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
+.summary-pct{font-size:11px;color:var(--muted2);margin-top:2px}
+
+.results-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;background:var(--surface)}
+.results-title{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
+.results-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.btn-dl{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-dl:hover{background:#15803D;transform:translateY(-1px)}
+
+.table-wrap{overflow-x:auto;overflow-y:auto;max-height:480px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+thead{position:sticky;top:0;z-index:10}
+th{background:#F1F5F9;padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;border-bottom:2px solid var(--border2)}
+td{padding:11px 16px;border-bottom:1px solid var(--border);color:var(--text2);white-space:nowrap;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#F8FAFC}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.badge-yellow{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border)}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.badge-blue{background:var(--blue-bg);color:var(--primary);border:1px solid var(--blue-border)}
+
+.pct-bar{display:flex;align-items:center;gap:8px;min-width:120px}
+.pct-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.pct-fill{height:100%;border-radius:3px}
+.pct-fill.red{background:var(--red)}.pct-fill.yellow{background:var(--yellow)}
+.pct-fill.green{background:var(--green)}.pct-fill.blue{background:var(--primary)}
+.pct-num{font-size:12px;font-weight:600;color:var(--text2);min-width:38px;text-align:right}
+
+/* CHARTS SECTION */
+.charts-section{margin-top:20px;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.charts-section-header{padding:16px 24px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:10px}
+.charts-section-title{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
+.charts-section-sub{font-size:12px;color:var(--muted)}
+.charts-grid{display:grid;gap:0}
+.charts-grid.two-col{grid-template-columns:1fr 1fr}
+.chart-panel{padding:28px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.chart-panel:nth-child(even){border-right:none}
+.chart-panel:last-child,.chart-panel:nth-last-child(2):nth-child(odd){border-bottom:none}
+.chart-panel.full{grid-column:span 2;border-right:none}
+.chart-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.chart-sub{font-size:11px;color:var(--muted);margin-bottom:20px}
+.chart-canvas-wrap{position:relative;height:260px}
+.chart-canvas-wrap.tall{height:360px}
+
+/* WEAK SUBJECT TABLE */
+.student-block{border-bottom:2px solid var(--border2)}
+.student-block:last-child{border-bottom:none}
+.weak-indicator{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--red)}
+
+.loader-wrap{padding:60px;text-align:center}
+.spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px}
+.loader-text{font-size:13px;color:var(--muted);font-weight:500}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .35s ease}
+
+@media(max-width:1100px){
+  .nav-inner,.page{padding-left:20px;padding-right:20px}
+  .upload-row{grid-template-columns:1fr}
+  .charts-grid.two-col{grid-template-columns:1fr}
+  .chart-panel.full{grid-column:span 1}
+  .chart-panel{border-right:none}
+  .tabs{flex-wrap:wrap;width:100%}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <div class="nav-brand-icon">AS</div>
+      <div class="nav-brand-name">ASPRS</div>
+    </a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/predict" class="nav-link">Single Predict</a>
+      <a href="/bulk" class="nav-link active">Bulk Upload</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-eyebrow">📊 Batch Inference Engine</div>
+    <h1 class="page-title">Bulk Student Predictions</h1>
+    <p class="page-sub">Upload an Excel sheet with multiple students. Get individual predictions for each student, class-wide summary stats, and visual charts — all in one click.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('kt')">🎯 KT Predictor</button>
+    <button class="tab" onclick="switchTab('dropout')">⚠️ Dropout Risk</button>
+    <button class="tab" onclick="switchTab('placement')">💼 Placement</button>
+    <button class="tab" onclick="switchTab('weak')">📚 Weak Subject</button>
+  </div>
+
+  <!-- KT -->
+  <div class="panel active" id="panel-kt">
+    <div class="upload-row">
+      <div class="card"><div class="card-body">
+        <div class="card-title">🎯 KT Risk Predictor</div>
+        <div class="card-desc">Upload Semester 1 data for all students. Model predicts KT risk + probability for each.</div>
+        <div class="drop-zone" id="dz-kt"><input type="file" accept=".xlsx,.xls" onchange="fileChosen('kt',this)"><div class="drop-icon">📂</div><div class="drop-title">Drop Excel file here</div><div class="drop-sub">or click to browse · .xlsx / .xls</div><div class="file-tag" id="fc-kt">📄 <span></span></div></div>
+        <div class="err-box" id="err-kt"></div>
+        <a class="btn-tpl" href="/api/template/kt" download>⬇ Download Template</a>
+        <button class="btn-run" id="btn-kt" onclick="runBulk('kt')" disabled>▶ Run KT Predictions</button>
+        <div class="req-cols"><div class="req-cols-title">Required columns</div><span class="col-pill">Sem1_Attendance_%</span><span class="col-pill">Sem1_Semester_Marks_Avg</span><span class="col-pill">Sem1_UT_Marks_Avg</span><span class="col-pill">Sem1_Internal_Marks_Avg</span><span class="col-pill">Sem1_Subject_Count</span><span class="col-pill">Sem1_KTs</span></div>
+      </div></div>
+      <div class="results-card" id="rp-kt"><div class="results-empty"><div class="results-empty-icon">🎯</div><div class="results-empty-title">No predictions yet</div><div class="results-empty-sub">Upload a file and click Run.</div></div></div>
+    </div>
+    <div id="charts-kt"></div>
+  </div>
+
+  <!-- DROPOUT -->
+  <div class="panel" id="panel-dropout">
+    <div class="upload-row">
+      <div class="card"><div class="card-body">
+        <div class="card-title">⚠️ Dropout Risk Analyzer</div>
+        <div class="card-desc">Classify each student as High, Medium, or Low dropout risk based on their profile.</div>
+        <div class="drop-zone" id="dz-dropout"><input type="file" accept=".xlsx,.xls" onchange="fileChosen('dropout',this)"><div class="drop-icon">📂</div><div class="drop-title">Drop Excel file here</div><div class="drop-sub">or click to browse · .xlsx / .xls</div><div class="file-tag" id="fc-dropout">📄 <span></span></div></div>
+        <div class="err-box" id="err-dropout"></div>
+        <a class="btn-tpl" href="/api/template/dropout" download>⬇ Download Template</a>
+        <button class="btn-run" id="btn-dropout" onclick="runBulk('dropout')" disabled>▶ Run Dropout Analysis</button>
+        <div class="req-cols"><div class="req-cols-title">Required columns</div><span class="col-pill">CGPA</span><span class="col-pill">Total_KTs</span><span class="col-pill">Attendance_%</span><span class="col-pill">Average_Grade_Score</span><span class="col-pill">Live_KT</span><span class="col-pill">KT_Attempt_Level</span></div>
+      </div></div>
+      <div class="results-card" id="rp-dropout"><div class="results-empty"><div class="results-empty-icon">⚠️</div><div class="results-empty-title">No predictions yet</div><div class="results-empty-sub">Upload a file and click Run.</div></div></div>
+    </div>
+    <div id="charts-dropout"></div>
+  </div>
+
+  <!-- PLACEMENT -->
+  <div class="panel" id="panel-placement">
+    <div class="upload-row">
+      <div class="card"><div class="card-body">
+        <div class="card-title">💼 Placement Predictor</div>
+        <div class="card-desc">Predict placement chances (High / Moderate / Low) for every student with probabilities.</div>
+        <div class="drop-zone" id="dz-placement"><input type="file" accept=".xlsx,.xls" onchange="fileChosen('placement',this)"><div class="drop-icon">📂</div><div class="drop-title">Drop Excel file here</div><div class="drop-sub">or click to browse · .xlsx / .xls</div><div class="file-tag" id="fc-placement">📄 <span></span></div></div>
+        <div class="err-box" id="err-placement"></div>
+        <a class="btn-tpl" href="/api/template/placement" download>⬇ Download Template</a>
+        <button class="btn-run" id="btn-placement" onclick="runBulk('placement')" disabled>▶ Run Placement Predictions</button>
+        <div class="req-cols"><div class="req-cols-title">Required columns</div><span class="col-pill">CGPA</span><span class="col-pill">Projects</span><span class="col-pill">Physical_Internships</span><span class="col-pill">Communication_Skills</span><span class="col-pill">Professor_Review</span><span class="col-pill">Attendance_%</span><span class="col-pill">Total_KTs</span></div>
+      </div></div>
+      <div class="results-card" id="rp-placement"><div class="results-empty"><div class="results-empty-icon">💼</div><div class="results-empty-title">No predictions yet</div><div class="results-empty-sub">Upload a file and click Run.</div></div></div>
+    </div>
+    <div id="charts-placement"></div>
+  </div>
+
+  <!-- WEAK SUBJECT -->
+  <div class="panel" id="panel-weak">
+    <div class="upload-row">
+      <div class="card"><div class="card-body">
+        <div class="card-title">📚 Weak Subject Predictor</div>
+        <div class="card-desc">Upload subject-wise rows (one per subject per student, same Roll_No). System grades all subjects and identifies each student's weakest.</div>
+        <div class="drop-zone" id="dz-weak"><input type="file" accept=".xlsx,.xls" onchange="fileChosen('weak',this)"><div class="drop-icon">📂</div><div class="drop-title">Drop Excel file here</div><div class="drop-sub">or click to browse · .xlsx / .xls</div><div class="file-tag" id="fc-weak">📄 <span></span></div></div>
+        <div class="err-box" id="err-weak"></div>
+        <a class="btn-tpl" href="/api/template/weak" download>⬇ Download Template</a>
+        <button class="btn-run" id="btn-weak" onclick="runBulk('weak')" disabled>▶ Run Weak Subject Analysis</button>
+        <div class="req-cols"><div class="req-cols-title">Required columns</div><span class="col-pill">Roll_No</span><span class="col-pill">Student_Name</span><span class="col-pill">Subject_Name</span><span class="col-pill">UT_Marks</span><span class="col-pill">Semester_Marks</span><span class="col-pill">Internal_Marks</span><span class="col-pill">Practical_Marks</span><span class="col-pill">Attendance_%</span></div>
+      </div></div>
+      <div class="results-card" id="rp-weak"><div class="results-empty"><div class="results-empty-icon">📚</div><div class="results-empty-title">No predictions yet</div><div class="results-empty-sub">Upload a file and click Run.</div></div></div>
+    </div>
+    <div id="charts-weak"></div>
+  </div>
+</div>
+
+<script>
+// ── Chart instance registry (destroy before re-render) ─────────────────────
+const chartRegistry = {}
+function destroyCharts(model) {
+  Object.keys(chartRegistry).forEach(k => {
+    if (k.startsWith(model + '_')) { chartRegistry[k].destroy(); delete chartRegistry[k] }
+  })
+}
+
+const files = {kt:null,dropout:null,placement:null,weak:null}
+
+function switchTab(m) {
+  const order=['kt','dropout','placement','weak']
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',order[i]===m))
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'))
+  document.getElementById('panel-'+m).classList.add('active')
+}
+function fileChosen(m,input) {
+  const f=input.files[0]; if(!f)return
+  files[m]=f
+  const fc=document.getElementById('fc-'+m)
+  fc.querySelector('span').textContent=f.name; fc.style.display='inline-flex'
+  document.getElementById('btn-'+m).disabled=false
+  document.getElementById('err-'+m).style.display='none'
+}
+function showErr(m,msg){const b=document.getElementById('err-'+m);b.textContent=msg;b.style.display='block'}
+
+// ── Badge / color helpers ──────────────────────────────────────────────────
+function badgeClass(v){
+  const s=String(v).toLowerCase()
+  if(s.includes('kt likely')||s.includes('high risk')||s==='d'||s==='low')return'badge badge-red'
+  if(s.includes('medium')||s==='moderate'||s==='c')return'badge badge-yellow'
+  if(s.includes('no kt')||s.includes('low risk')||s==='high'||s==='a')return'badge badge-green'
+  return'badge badge-blue'
+}
+function pctBar(val,color){
+  return`<div class="pct-bar"><div class="pct-track"><div class="pct-fill ${color}" style="width:${val}%"></div></div><span class="pct-num">${val}%</span></div>`
+}
+
+// ── Summary bar ────────────────────────────────────────────────────────────
+function makeSummary(model,rows,cols){
+  const total=rows.length
+  const predColMap={kt:'KT_Prediction',dropout:'Dropout_Risk',placement:'Placement_Chance'}
+  const predCol=predColMap[model]; const ci=cols.indexOf(predCol); if(ci===-1)return''
+  const counts={}
+  rows.forEach(r=>{const v=String(r[ci]);counts[v]=(counts[v]||0)+1})
+  const colorMap={'KT Likely':'red','No KT':'green','High Risk':'red','Medium Risk':'yellow','Low Risk':'green','High':'green','Moderate':'yellow','Low':'red'}
+  const cards=Object.entries(counts).sort().map(([k,v])=>`
+    <div class="summary-card"><div class="summary-val ${colorMap[k]||'blue'}">${v}</div><div class="summary-label">${k}</div><div class="summary-pct">${Math.round(v/total*100)}% of class</div></div>`).join('')
+  let avgHtml=''
+  if(model==='kt'){
+    const pi=cols.indexOf('KT_Probability_%')
+    if(pi>-1){const avg=(rows.reduce((s,r)=>s+parseFloat(r[pi]||0),0)/total).toFixed(1)
+      avgHtml=`<div class="summary-card"><div class="summary-val blue">${avg}%</div><div class="summary-label">Avg KT Risk</div><div class="summary-pct">across ${total} students</div></div>`}
+  }
+  const totalCard=`<div class="summary-card"><div class="summary-val blue">${total}</div><div class="summary-label">Total Students</div><div class="summary-pct">in this batch</div></div>`
+  const colCount=2+Object.keys(counts).length+(avgHtml?1:0)
+  return`<div class="summary-bar" style="grid-template-columns:repeat(${colCount},1fr)">${totalCard+cards+avgHtml}</div>`
+}
+
+// ── PRED_COLS for table rendering ─────────────────────────────────────────
+const PRED_COLS={
+  kt:['KT_Prediction','KT_Probability_%','Safe_Probability_%'],
+  dropout:['Dropout_Risk','Prob_High Risk_%','Prob_Medium Risk_%','Prob_Low Risk_%'],
+  placement:['Placement_Chance','Prob_High_%','Prob_Moderate_%','Prob_Low_%']
+}
+
+function renderTable(model,data){
+  const rp=document.getElementById('rp-'+model)
+  const pc=new Set(PRED_COLS[model]||[])
+  const hdr=data.columns.map(c=>`<th>${c.replace(/_/g,' ')}</th>`).join('')
+  const body=data.rows.map(row=>{
+    const cells=row.map((cell,i)=>{
+      const col=data.columns[i]; const v=cell===null?'—':cell
+      if(pc.has(col)){
+        if(typeof v==='number'||(!isNaN(parseFloat(v))&&String(v).includes('.'))){
+          const num=parseFloat(v); let c='blue'
+          if(col==='KT_Probability_%'||col.toLowerCase().includes('high risk')||col.toLowerCase().includes('prob_low_%'))c='red'
+          else if(col.toLowerCase().includes('medium')||col.toLowerCase().includes('moderate'))c='yellow'
+          else if(col==='Safe_Probability_%'||col.toLowerCase().includes('low risk')||col.toLowerCase().includes('prob_high_%'))c='green'
+          return`<td>${pctBar(num,c)}</td>`
+        }
+        return`<td><span class="${badgeClass(v)}">${v}</span></td>`
+      }
+      return`<td>${v}</td>`
+    }).join('')
+    return`<tr>${cells}</tr>`
+  }).join('')
+  const summary=makeSummary(model,data.rows,data.columns)
+  rp.innerHTML=`<div class="fade-in">${summary}
+    <div class="results-header">
+      <div><div class="results-title">Per-Student Prediction Results</div><div class="results-meta">${data.total} students processed</div></div>
+      <button class="btn-dl" onclick="downloadResults('${model}')">⬇ Download Excel</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr>${hdr}</tr></thead><tbody>${body}</tbody></table></div>
+  </div>`
+
+  // Draw charts after table renders
+  setTimeout(()=>drawCharts(model,data),100)
+}
+
+// ── DRAW CHARTS ────────────────────────────────────────────────────────────
+function drawCharts(model,data){
+  destroyCharts(model)
+  const container=document.getElementById('charts-'+model)
+
+  if(model==='kt')    drawKTCharts(container,data)
+  if(model==='dropout') drawDropoutCharts(container,data)
+  if(model==='placement') drawPlacementCharts(container,data)
+}
+
+function chartSectionHTML(charts){
+  const panels=charts.map((c,i)=>`
+    <div class="chart-panel${c.full?' full':''}">
+      <div class="chart-title">${c.title}</div>
+      <div class="chart-sub">${c.sub}</div>
+      <div class="chart-canvas-wrap${c.tall?' tall':''}"><canvas id="${c.id}"></canvas></div>
+    </div>`).join('')
+  return`<div class="charts-section fade-in">
+    <div class="charts-section-header">
+      <span style="font-size:20px">📈</span>
+      <div><div class="charts-section-title">Visual Analytics</div><div class="charts-section-sub">Charts generated from prediction results</div></div>
+    </div>
+    <div class="charts-grid two-col">${panels}</div>
+  </div>`
+}
+
+// Chart.js global defaults
+Chart.defaults.font.family = 'Inter, sans-serif'
+Chart.defaults.font.size = 12
+Chart.defaults.plugins.legend.labels.boxWidth = 12
+Chart.defaults.plugins.legend.labels.padding = 16
+
+// ── KT Charts: Donut + Ranked Bar ─────────────────────────────────────────
+function drawKTCharts(container,data){
+  container.innerHTML=chartSectionHTML([
+    {id:'kt_donut',title:'KT Risk Distribution',sub:'Overall class split between KT Likely and No KT'},
+    {id:'kt_bar',title:'KT Probability per Student (Ranked)',sub:'Each bar = one student, sorted from highest to lowest KT risk',full:false}
+  ])
+
+  const predCI=data.columns.indexOf('KT_Prediction')
+  const probCI=data.columns.indexOf('KT_Probability_%')
+  const nameCI=data.columns.indexOf('Student_Name')
+
+  // Donut
+  const counts={'KT Likely':0,'No KT':0}
+  data.rows.forEach(r=>{const v=String(r[predCI]);counts[v]=(counts[v]||0)+1})
+  chartRegistry['kt_donut']=new Chart(document.getElementById('kt_donut'),{
+    type:'doughnut',
+    data:{labels:Object.keys(counts),datasets:[{data:Object.values(counts),backgroundColor:['#DC2626','#16A34A'],borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} students (${Math.round(ctx.raw/data.total*100)}%)`}}}}
+  })
+
+  // Ranked bar
+  const sorted=[...data.rows].map(r=>({name:String(r[nameCI]).split(' ')[0],prob:parseFloat(r[probCI]||0)})).sort((a,b)=>b.prob-a.prob)
+  chartRegistry['kt_bar']=new Chart(document.getElementById('kt_bar'),{
+    type:'bar',
+    data:{labels:sorted.map(s=>s.name),datasets:[{label:'KT Probability %',data:sorted.map(s=>s.prob),backgroundColor:sorted.map(s=>s.prob>=60?'rgba(220,38,38,0.8)':s.prob>=40?'rgba(217,119,6,0.8)':'rgba(22,163,74,0.8)'),borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`KT Risk: ${ctx.raw}%`}}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'},grid:{color:'#F1F5F9'}},x:{ticks:{maxRotation:45,font:{size:10}},grid:{display:false}}}}
+  })
+}
+
+// ── Dropout Charts: Donut + Horizontal student bar ─────────────────────────
+function drawDropoutCharts(container,data){
+  container.innerHTML=chartSectionHTML([
+    {id:'do_donut',title:'Dropout Risk Distribution',sub:'Class split across High, Medium and Low risk categories'},
+    {id:'do_bar',title:'Risk Profile per Student',sub:'Stacked probability breakdown for each student',full:false}
+  ])
+
+  const predCI=data.columns.indexOf('Dropout_Risk')
+  const hiCI=data.columns.findIndex(c=>c.includes('High Risk'))
+  const medCI=data.columns.findIndex(c=>c.includes('Medium Risk'))
+  const lowCI=data.columns.findIndex(c=>c.includes('Low Risk'))
+  const nameCI=data.columns.indexOf('Student_Name')
+
+  const counts={}
+  data.rows.forEach(r=>{const v=String(r[predCI]);counts[v]=(counts[v]||0)+1})
+  const colorForLabel=l=>l.includes('High')?'#DC2626':l.includes('Medium')?'#D97706':'#16A34A'
+
+  chartRegistry['do_donut']=new Chart(document.getElementById('do_donut'),{
+    type:'doughnut',
+    data:{labels:Object.keys(counts),datasets:[{data:Object.values(counts),backgroundColor:Object.keys(counts).map(colorForLabel),borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} students`}}}}
+  })
+
+  // Stacked bar — show top 20 students max for readability
+  const sample=data.rows.slice(0,25)
+  chartRegistry['do_bar']=new Chart(document.getElementById('do_bar'),{
+    type:'bar',
+    data:{
+      labels:sample.map(r=>String(r[nameCI]).split(' ')[0]),
+      datasets:[
+        {label:'High Risk %',data:sample.map(r=>parseFloat(r[hiCI]||0)),backgroundColor:'rgba(220,38,38,0.8)',borderRadius:0},
+        {label:'Medium Risk %',data:sample.map(r=>parseFloat(r[medCI]||0)),backgroundColor:'rgba(217,119,6,0.8)'},
+        {label:'Low Risk %',data:sample.map(r=>parseFloat(r[lowCI]||0)),backgroundColor:'rgba(22,163,74,0.8)'}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{mode:'index'}},scales:{x:{stacked:true,ticks:{maxRotation:45,font:{size:10}},grid:{display:false}},y:{stacked:true,max:100,ticks:{callback:v=>v+'%'},grid:{color:'#F1F5F9'}}}}
+  })
+}
+
+// ── Placement Charts: Donut + Bar of top probability ──────────────────────
+function drawPlacementCharts(container,data){
+  container.innerHTML=chartSectionHTML([
+    {id:'pl_donut',title:'Placement Chance Distribution',sub:'Class split across High, Moderate and Low placement categories'},
+    {id:'pl_bar',title:'Placement Probability Breakdown per Student',sub:'Stacked bar showing High / Moderate / Low probability for each student',full:false}
+  ])
+
+  const predCI=data.columns.indexOf('Placement_Chance')
+  const hiCI=data.columns.findIndex(c=>c==='Prob_High_%')
+  const modCI=data.columns.findIndex(c=>c==='Prob_Moderate_%')
+  const lowCI=data.columns.findIndex(c=>c==='Prob_Low_%')
+  const nameCI=data.columns.indexOf('Student_Name')
+
+  const counts={}
+  data.rows.forEach(r=>{const v=String(r[predCI]);counts[v]=(counts[v]||0)+1})
+  const colorForLabel=l=>l==='High'?'#16A34A':l==='Moderate'?'#D97706':'#DC2626'
+
+  chartRegistry['pl_donut']=new Chart(document.getElementById('pl_donut'),{
+    type:'doughnut',
+    data:{labels:Object.keys(counts),datasets:[{data:Object.values(counts),backgroundColor:Object.keys(counts).map(colorForLabel),borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} students`}}}}
+  })
+
+  const sample=data.rows.slice(0,25)
+  chartRegistry['pl_bar']=new Chart(document.getElementById('pl_bar'),{
+    type:'bar',
+    data:{
+      labels:sample.map(r=>String(r[nameCI]).split(' ')[0]),
+      datasets:[
+        {label:'High %',data:sample.map(r=>parseFloat(r[hiCI]||0)),backgroundColor:'rgba(22,163,74,0.8)'},
+        {label:'Moderate %',data:sample.map(r=>parseFloat(r[modCI]||0)),backgroundColor:'rgba(217,119,6,0.8)'},
+        {label:'Low %',data:sample.map(r=>parseFloat(r[lowCI]||0)),backgroundColor:'rgba(220,38,38,0.8)'}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{mode:'index'}},scales:{x:{stacked:true,ticks:{maxRotation:45,font:{size:10}},grid:{display:false}},y:{stacked:true,max:100,ticks:{callback:v=>v+'%'},grid:{color:'#F1F5F9'}}}}
+  })
+}
+
+// ── Render weak subject grouped table + charts ─────────────────────────────
+function renderWeakTable(data){
+  const rp=document.getElementById('rp-weak')
+  const rollIdx=data.columns.indexOf('Roll_No')
+  const nameIdx=data.columns.indexOf('Student_Name')
+  const subjIdx=data.columns.indexOf('Subject_Name')
+  const gradeIdx=data.columns.indexOf('Subject_Grade')
+  const labelIdx=data.columns.indexOf('Grade_Label')
+  const utIdx=data.columns.indexOf('UT_Marks')
+  const semIdx=data.columns.indexOf('Semester_Marks')
+  const intIdx=data.columns.indexOf('Internal_Marks')
+  const prcIdx=data.columns.indexOf('Practical_Marks')
+  const attIdx=data.columns.indexOf('Attendance_%')
+  const gradeRank={D:0,C:1,B:2,A:3}
+
+  const groups={}; const groupOrder=[]
+  data.rows.forEach(r=>{
+    const roll=(r[rollIdx]&&String(r[rollIdx]).trim()!==''&&String(r[rollIdx])!=='null')?String(r[rollIdx]).trim():String(r[nameIdx]||'unknown').trim()
+    if(!groups[roll]){groups[roll]={name:r[nameIdx],roll:r[rollIdx],subjects:[]};groupOrder.push(roll)}
+    groups[roll].subjects.push(r)
+  })
+
+  const totalStudents=groupOrder.length
+  const subjectCounts={}; const weakCounts={A:0,B:0,C:0,D:0}
+  const subjectsPerStudent=groups[groupOrder[0]]?groups[groupOrder[0]].subjects.length:'?'
+  groupOrder.forEach(roll=>{
+    const subs=groups[roll].subjects
+    let worstRow=subs[0]
+    subs.forEach(s=>{if(gradeRank[s[gradeIdx]]<gradeRank[worstRow[gradeIdx]])worstRow=s})
+    weakCounts[worstRow[gradeIdx]]++
+    const wSubj=String(worstRow[subjIdx]||'Unknown')
+    subjectCounts[wSubj]=(subjectCounts[wSubj]||0)+1
+  })
+
+  const mostWeak=Object.entries(subjectCounts).sort((a,b)=>b[1]-a[1])[0]
+  const mostWeakName=mostWeak?mostWeak[0]:'—'; const mostWeakCount=mostWeak?mostWeak[1]:0
+
+  const summaryHtml=`<div class="summary-bar" style="grid-template-columns:repeat(7,1fr)">
+    <div class="summary-card"><div class="summary-val blue">${totalStudents}</div><div class="summary-label">Students</div><div class="summary-pct">analysed</div></div>
+    <div class="summary-card"><div class="summary-val blue">${subjectsPerStudent}</div><div class="summary-label">Subjects / Student</div><div class="summary-pct">in this sheet</div></div>
+    <div class="summary-card" style="border:2px solid #FCA5A5;background:#FFF8F8"><div class="summary-val red" style="font-size:13px;font-weight:800;line-height:1.4">${mostWeakName}</div><div class="summary-label">Most Common Weak Subject</div><div class="summary-pct">${mostWeakCount} students (${Math.round(mostWeakCount/totalStudents*100)}%)</div></div>
+    <div class="summary-card"><div class="summary-val green">${weakCounts.A}</div><div class="summary-label">Weakest: Grade A</div><div class="summary-pct">${Math.round(weakCounts.A/totalStudents*100)}%</div></div>
+    <div class="summary-card"><div class="summary-val blue">${weakCounts.B}</div><div class="summary-label">Weakest: Grade B</div><div class="summary-pct">${Math.round(weakCounts.B/totalStudents*100)}%</div></div>
+    <div class="summary-card"><div class="summary-val yellow">${weakCounts.C}</div><div class="summary-label">Weakest: Grade C</div><div class="summary-pct">${Math.round(weakCounts.C/totalStudents*100)}%</div></div>
+    <div class="summary-card"><div class="summary-val red">${weakCounts.D}</div><div class="summary-label">Weakest: Grade D</div><div class="summary-pct">${Math.round(weakCounts.D/totalStudents*100)}%</div></div>
+  </div>`
+
+  const hdr=`<tr><th>Roll No</th><th>Student Name</th><th>Subject</th><th>UT Marks</th><th>Sem Marks</th><th>Internal</th><th>Practical</th><th>Attendance %</th><th>Grade</th><th>Label</th><th>Weakest?</th></tr>`
+
+  const body=groupOrder.map(roll=>{
+    const g=groups[roll]; let worstIdx=0
+    g.subjects.forEach((s,i)=>{if(gradeRank[s[gradeIdx]]<gradeRank[g.subjects[worstIdx][gradeIdx]])worstIdx=i})
+    const rows=g.subjects.map((s,i)=>{
+      const isWeak=i===worstIdx; const grade=s[gradeIdx]
+      const bc=grade==='A'?'badge-green':grade==='B'?'badge-blue':grade==='C'?'badge-yellow':'badge-red'
+      return`<tr ${isWeak?'style="background:#FFF8F8"':''}>
+        <td style="color:var(--muted2);font-size:12px">${i===0?s[rollIdx]:''}</td>
+        <td style="color:var(--muted2);font-size:12px">${i===0?s[nameIdx]:''}</td>
+        <td style="font-weight:${isWeak?600:400};color:${isWeak?'var(--red)':'var(--text2)'}">${s[subjIdx]}</td>
+        <td>${s[utIdx]}</td><td>${s[semIdx]}</td><td>${s[intIdx]}</td><td>${s[prcIdx]}</td><td>${s[attIdx]}</td>
+        <td><span class="badge ${bc}">${grade}</span></td>
+        <td style="font-size:12px;color:var(--muted)">${s[labelIdx]}</td>
+        <td>${isWeak?'<span class="weak-indicator">⚠ Weakest</span>':'<span style="color:var(--muted2);font-size:12px">—</span>'}</td>
+      </tr>`
+    }).join('')
+    return`<tbody class="student-block">${rows}</tbody>`
+  }).join('')
+
+  rp.innerHTML=`<div class="fade-in">${summaryHtml}
+    <div class="results-header">
+      <div><div class="results-title">Weak Subject Analysis — Per Student</div><div class="results-meta">${totalStudents} students · ${subjectsPerStudent} subjects each · weakest highlighted in red</div></div>
+      <button class="btn-dl" onclick="downloadResults('weak')">⬇ Download Excel</button>
+    </div>
+    <div class="table-wrap"><table><thead>${hdr}</thead>${body}</table></div>
+  </div>`
+
+  setTimeout(()=>drawWeakCharts(document.getElementById('charts-weak'),subjectCounts,weakCounts,totalStudents,groupOrder,groups,gradeIdx,subjIdx),100)
+}
+
+// ── Weak Subject Charts ────────────────────────────────────────────────────
+function drawWeakCharts(container,subjectCounts,weakCounts,totalStudents,groupOrder,groups,gradeIdx,subjIdx){
+  destroyCharts('weak')
+  container.innerHTML=chartSectionHTML([
+    {id:'ws_subj_bar',title:'Most Common Weak Subjects Across Class',sub:'How many students have each subject as their weakest — sorted by frequency'},
+    {id:'ws_grade_donut',title:'Weakest Grade Distribution',sub:'Distribution of worst grades across all students'},
+    {id:'ws_grade_bar',title:'Overall Grade Distribution (All Subjects)',sub:'How all subject grades are spread across the entire class',full:true}
+  ])
+
+  // Weak subjects horizontal bar
+  const subjEntries=Object.entries(subjectCounts).sort((a,b)=>b[1]-a[1])
+  chartRegistry['weak_ws_subj_bar']=new Chart(document.getElementById('ws_subj_bar'),{
+    type:'bar',
+    data:{
+      labels:subjEntries.map(e=>e[0]),
+      datasets:[{label:'Students with this as weakest',data:subjEntries.map(e=>e[1]),backgroundColor:subjEntries.map((_,i)=>`hsl(${220+i*25},70%,55%)`),borderRadius:5,borderSkipped:false}]
+    },
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw} students (${Math.round(ctx.raw/totalStudents*100)}%)`}}},scales:{x:{ticks:{stepSize:1},grid:{color:'#F1F5F9'}},y:{grid:{display:false}}}}
+  })
+
+  // Grade donut
+  chartRegistry['weak_ws_grade_donut']=new Chart(document.getElementById('ws_grade_donut'),{
+    type:'doughnut',
+    data:{labels:['Grade A','Grade B','Grade C','Grade D'],datasets:[{data:[weakCounts.A,weakCounts.B,weakCounts.C,weakCounts.D],backgroundColor:['#16A34A','#2563EB','#D97706','#DC2626'],borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} students`}}}}
+  })
+
+  // All-subject grade distribution bar
+  const gradeRank={D:0,C:1,B:2,A:3}
+  const allGradeCounts={A:0,B:0,C:0,D:0}
+  groupOrder.forEach(roll=>{groups[roll].subjects.forEach(s=>{const g=s[gradeIdx]; if(allGradeCounts[g]!==undefined)allGradeCounts[g]++})})
+  chartRegistry['weak_ws_grade_bar']=new Chart(document.getElementById('ws_grade_bar'),{
+    type:'bar',
+    data:{
+      labels:['Grade A (Excellent)','Grade B (Good)','Grade C (Average)','Grade D (Weak)'],
+      datasets:[{label:'Number of subject entries',data:[allGradeCounts.A,allGradeCounts.B,allGradeCounts.C,allGradeCounts.D],backgroundColor:['rgba(22,163,74,0.8)','rgba(37,99,235,0.8)','rgba(217,119,6,0.8)','rgba(220,38,38,0.8)'],borderRadius:6,borderSkipped:false}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw} subject entries`}}},scales:{y:{ticks:{stepSize:1},grid:{color:'#F1F5F9'}},x:{grid:{display:false}}}}
+  })
+}
+
+// ── Run bulk ───────────────────────────────────────────────────────────────
+async function runBulk(m){
+  const f=files[m]; if(!f){showErr(m,'Please select an Excel file first.');return}
+  document.getElementById('err-'+m).style.display='none'
+  document.getElementById('rp-'+m).innerHTML=`<div class="loader-wrap"><div class="spinner"></div><div class="loader-text">Running predictions on all students...</div></div>`
+  document.getElementById('charts-'+m).innerHTML=''
+  document.getElementById('btn-'+m).disabled=true
+  try{
+    const fd=new FormData(); fd.append('model',m); fd.append('file',f)
+    const res=await fetch('/api/bulk/preview',{method:'POST',body:fd})
+    const data=await res.json()
+    if(data.error){
+      showErr(m,data.error)
+      document.getElementById('rp-'+m).innerHTML=`<div class="results-empty"><div class="results-empty-icon">❌</div><div class="results-empty-title">Error</div><div class="results-empty-sub">${data.error}</div></div>`
+    } else {
+      if(m==='weak') renderWeakTable(data)
+      else renderTable(m,data)
+    }
+  } catch(e){
+    showErr(m,'Cannot reach server. Make sure python app.py is running on port 5000.')
+    document.getElementById('rp-'+m).innerHTML=`<div class="results-empty"><div class="results-empty-icon">🔌</div><div class="results-empty-title">Server not reachable</div><div class="results-empty-sub">Run: python app.py</div></div>`
+  }
+  document.getElementById('btn-'+m).disabled=false
+}
+
+async function downloadResults(m){
+  const f=files[m]; if(!f)return
+  const fd=new FormData(); fd.append('model',m); fd.append('file',f)
+  const res=await fetch('/api/bulk/download',{method:'POST',body:fd})
+  if(!res.ok){alert('Download failed.');return}
+  const blob=await res.blob(); const url=URL.createObjectURL(blob)
+  const a=document.createElement('a'); a.href=url; a.download=`${m}_predictions.xlsx`; a.click()
+  URL.revokeObjectURL(url)
+}
+
+document.querySelectorAll('.drop-zone').forEach(dz=>{
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')})
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'))
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over')})
+})
+</script>
+</body>
+</html>
+<script>
+// ── Ripple on run buttons ──────────────────────────────────────────────────
+document.querySelectorAll('.btn-run,.btn-tpl').forEach(btn=>{
+  btn.style.position='relative'; btn.style.overflow='hidden'
+  btn.addEventListener('click',function(e){
+    if(this.disabled)return
+    const r=document.createElement('span')
+    const d=Math.max(this.clientWidth,this.clientHeight)
+    const rect=this.getBoundingClientRect()
+    r.style.cssText=`position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);width:${d}px;height:${d}px;left:${e.clientX-rect.left-d/2}px;top:${e.clientY-rect.top-d/2}px;transform:scale(0);animation:ripple .5s linear;pointer-events:none`
+    this.appendChild(r); setTimeout(()=>r.remove(),500)
+  })
+})
+
+// ── Tab switch fade ────────────────────────────────────────────────────────
+const origSwitch=window.switchTab
+window.switchTab=function(m){
+  origSwitch(m)
+  const panel=document.getElementById('panel-'+m)
+  panel.style.opacity='0'; panel.style.transform='translateY(8px)'
+  requestAnimationFrame(()=>{
+    panel.style.transition='opacity .3s ease,transform .3s ease'
+    panel.style.opacity='1'; panel.style.transform=''
+  })
+}
+
+// ── Drop zone pulse animation ──────────────────────────────────────────────
+document.querySelectorAll('.drop-zone').forEach(dz=>{
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')})
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'))
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over')})
+})
+
+// ── Summary card count-up ──────────────────────────────────────────────────
+function animateCount(el,target,duration=900){
+  const num=parseInt(target)
+  if(isNaN(num)){el.textContent=target;return}
+  const start=performance.now(); const from=0
+  const step=now=>{
+    const p=Math.min((now-start)/duration,1)
+    const ease=1-Math.pow(1-p,3)
+    el.textContent=Math.floor(from+(num-from)*ease)
+    if(p<1) requestAnimationFrame(step)
+    else el.textContent=target
+  }
+  requestAnimationFrame(step)
+}
+
+// Patch renderTable to animate summary cards after render
+const origRenderTable=window.renderTable
+window.renderTable=function(model,data){
+  origRenderTable(model,data)
+  setTimeout(()=>{
+    document.querySelectorAll('#rp-'+model+' .summary-val').forEach(el=>{
+      animateCount(el,el.textContent)
+    })
+    // Animate pct bars
+    document.querySelectorAll('#rp-'+model+' .pct-fill').forEach(fill=>{
+      const w=fill.style.width; fill.style.width='0'
+      setTimeout(()=>{fill.style.transition='width .7s cubic-bezier(.4,0,.2,1)';fill.style.width=w},80)
+    })
+  },80)
+}
+
+const origRenderWeak=window.renderWeakTable
+window.renderWeakTable=function(data){
+  origRenderWeak(data)
+  setTimeout(()=>{
+    document.querySelectorAll('#rp-weak .summary-val').forEach(el=>animateCount(el,el.textContent))
+  },80)
+}
+
+// ── Row hover highlight with transition ────────────────────────────────────
+document.addEventListener('mouseover',e=>{
+  const td=e.target.closest('td')
+  if(td){
+    const row=td.closest('tr')
+    if(row) row.style.transition='background .15s ease'
+  }
+})
+
+// ── File drop zone bounce ──────────────────────────────────────────────────
+document.querySelectorAll('.drop-zone input').forEach(inp=>{
+  inp.addEventListener('change',function(){
+    const dz=this.closest('.drop-zone')
+    dz.style.animation='bounce .4s ease'
+    setTimeout(()=>dz.style.animation='',400)
+  })
+})
+
+// ── Scroll progress bar ────────────────────────────────────────────────────
+const bar=document.createElement('div')
+bar.style.cssText='position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#2563EB,#0EA5E9);z-index:9999;width:0;transition:width .1s linear'
+document.body.appendChild(bar)
+window.addEventListener('scroll',()=>{
+  const pct=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight))*100
+  bar.style.width=pct+'%'
+})
+
+// ── Chart section scroll-into-view with fade ──────────────────────────────
+const chartObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.style.opacity='1'; e.target.style.transform=''
+      chartObs.unobserve(e.target)
+    }
+  })
+},{threshold:0.1})
+
+const patchChartSection=()=>{
+  document.querySelectorAll('.charts-section').forEach(s=>{
+    if(!s.dataset.observed){
+      s.style.opacity='0'; s.style.transform='translateY(16px)'; s.style.transition='opacity .5s ease,transform .5s ease'
+      chartObs.observe(s); s.dataset.observed='1'
+    }
+  })
+}
+setInterval(patchChartSection,500)
+
+// ── Col pill hover ────────────────────────────────────────────────────────
+document.querySelectorAll('.col-pill').forEach(p=>{
+  p.style.transition='all .2s ease; cursor:default'
+  p.addEventListener('mouseenter',()=>{p.style.background='#BFDBFE';p.style.transform='scale(1.05)'})
+  p.addEventListener('mouseleave',()=>{p.style.background='';p.style.transform=''})
+})
+
+// ── Results card entrance ─────────────────────────────────────────────────
+const rpObs=new MutationObserver(muts=>{
+  muts.forEach(m=>{
+    if(m.addedNodes.length){
+      const card=m.target
+      card.style.opacity='0'; card.style.transform='translateY(10px)'
+      requestAnimationFrame(()=>{
+        card.style.transition='opacity .4s ease,transform .4s ease'
+        card.style.opacity='1'; card.style.transform=''
+      })
+    }
+  })
+})
+document.querySelectorAll('[id^=rp-]').forEach(el=>rpObs.observe(el,{childList:true}))
+</script>
+<style>
+@keyframes ripple{to{transform:scale(2.5);opacity:0}}
+@keyframes bounce{0%,100%{transform:scale(1)}40%{transform:scale(1.04)}70%{transform:scale(0.97)}}
+.drop-zone{transition:all .25s ease}
+.drop-zone.over{transform:scale(1.01)}
+.results-card,.charts-section{transition:box-shadow .2s ease}
+.results-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.summary-card{transition:background .2s ease,transform .2s ease}
+.summary-card:hover{background:var(--primary-light);transform:translateY(-2px)}
+.badge{transition:transform .15s ease}
+.badge:hover{transform:scale(1.05)}
+.btn-dl{transition:all .2s ease}
+.col-pill{cursor:default}
+</style>
